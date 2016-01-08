@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Teacher Classes with Photos</title>
+ <style>
+ .photo_box {
+ 	float: left;
+ 	width: 110px;
+ 	height: 180px;
+ 	font-size: 6pt;
+ }
+  @page { size:8.5in 11in; margin: .25in; }
+ </style>
+</head> 
+<body> 
+~[tlist_sql;
+SELECT st.dcid, st.last_name, st.first_name, st.grade_level, c.course_name course, s.section_number section, s.room room, s.expression expression
+FROM teachers tea
+	INNER JOIN sections s
+		ON tea.id=s.teacher
+	INNER JOIN courses c
+		ON s.course_number=c.course_number
+	INNER JOIN terms ter
+		ON s.termid=ter.id
+	INNER JOIN cc
+		ON s.id=cc.sectionid
+  INNER JOIN students st
+  ON cc.studentid=st.id
+WHERE
+	tea.dcid=~(rn) AND sysdate between ter.firstday and ter.lastday
+  ORDER BY s.id, st.lastfirst; alternatecolor]<div class="photo_box">
+  <a href="../stp/~(dcid)ph.jpeg" target="_blank"><img src="../stp/~(dcid)ph.jpeg" width="100" border="0" /></a>
+<br clear="both" />
+<strong>~(last_name), ~(first_name)</strong>: ~(grade_level)<br />~(course) ~(section) ~(room) ~(expression)</div>[/tlist_sql]
+</body> 
+</html>
