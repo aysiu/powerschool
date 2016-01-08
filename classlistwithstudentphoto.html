@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Teacher Classes with Photos</title>
+<!-- required scripts -->
+	~[wc:commonscripts] 
+<!-- Required style sheets: screen.css, and print.css --> 
+	<link href="/images/css/screen.css" rel="stylesheet" media="screen">
+	<link href="/images/css/print.css" rel="stylesheet" media="print">
+</head> 
+<body> 
+	~[wc:admin_header_css] 
+ <!-- breadcrumb start --><!-- breadcrumb end --> 
+<!-- start of main menu and content --> 
+	~[wc:admin_navigation_css] 
+<!-- Start of Page --> 
+	<h1>Teacher Classes with Photos</h1> 
+<!-- start of content area --> 
+	<div class="box-round"> 
+<table class="tableToGrid">
+<thead>
+<tr>
+<th width="120">Photo</th>
+<th data-sorttype="customText">Student Name</th>
+<th data-sorttype="integer" width="35">Gr.</th>
+<th data-sorttype="customText">Course</th>
+<th data-sorttype="customText" width="35">Section</th>
+<th data-sorttype="customText" width="40">Room</th>
+<th data-sorttype="customText" width="50">Expression</th>
+<th data-sorttype="customText">Teacher</th>
+</tr></thead><tbody>
+~[tlist_sql;
+SELECT st.dcid, st.last_name, st.first_name, st.grade_level, c.course_name course, s.section_number section, s.room room, s.expression expression, tea.lastfirst teacher
+FROM teachers tea
+	INNER JOIN sections s
+		ON tea.id=s.teacher
+	INNER JOIN courses c
+		ON s.course_number=c.course_number
+	INNER JOIN terms ter
+		ON s.termid=ter.id
+	INNER JOIN cc
+		ON s.id=cc.sectionid
+  INNER JOIN students st
+  ON cc.studentid=st.id
+WHERE
+	tea.dcid=~(rn) AND sysdate between ter.firstday and ter.lastday
+  ORDER BY s.id, st.lastfirst; alternatecolor]
+<tr>
+<td width="120"><a href="../stp/~(dcid)ph.jpeg" target="_blank"><img src="../stp/~(dcid)ph.jpeg" width="115" border="0" /></a></td>
+<td>~(last_name), ~(first_name)</td>
+<td width="35">~(grade_level)</td>
+<td>~(course)</td>
+<td width="35">~(section)</td>
+<td width="40">~(room)</td>
+<td width="50">~(expression)</td>
+<td>~(teacher)</td></tr>[/tlist_sql]
+</tbody></table>	</div> 
+<!-- end of content area --> 
+	~[wc:admin_footer_css] 
+</body> 
+</html>
