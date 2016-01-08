@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Student Photos from Selection</title>
+ <style>
+ .photo_box {
+ 	float: left;
+ 	width: 110px;
+ 	height: 180px;
+ 	font-size: 6pt;
+ }
+  @page { size:8.5in 11in; margin: .25in; }
+ </style>
+</head> 
+<body> 
+~[tlist_sql; SELECT st.dcid, st.last_name, st.first_name, st.grade_level FROM Students st 
+INNER JOIN ~[temp.table.current.selection:students] stusel 
+ON stusel.dcid = st.dcid
+]<div class="photo_box">
+  <a href="../stp/~(dcid)ph.jpeg" target="_blank"><img src="../stp/~(dcid)ph.jpeg" width="100" border="0" /></a>
+<br clear="both" />
+<strong>~(last_name), ~(first_name)</strong>: ~(grade_level)</div>[/tlist_sql]</body> 
+</html>
