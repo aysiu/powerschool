@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<!--
+This report will list out student GPAs based on students you have put into PowerSchool's "current selection."
+You will have to modify this slightly to substitute in your actual GPA methods for the "INSERTNAMEOFYOURMETHODHERE"
+
+This report also references a separate file called student_gpas.html, so be sure to make that custom page as well.
+
+Credit goes to Adam L. from the PowerSource forums for the jQuery way of dynamically calling the student_gpas.html page to get individual GPAs for students.
+
+-->
+<html>
+<head>
+	<title>Student GPA from Selection</title>
+<!-- required scripts -->
+	~[wc:commonscripts] 
+<!-- Required style sheets: screen.css, and print.css --> 
+	<link href="/images/css/screen.css" rel="stylesheet" media="screen">
+	<link href="/images/css/print.css" rel="stylesheet" media="print">
+	<script>
+ $j(document).ready(function()
+ {
+ $j(".gpa").each(function()
+ {
+ $j(this).load("student_gpas.html",
+ {
+ "frn": "001" + $j(this).attr("dcid"),
+ "method": $j(this).attr("method")
+  }
+ )
+ }
+ );
+ }
+ )
+ 
+ </script>
+ <style>
+th{
+	font-size: xx-small;
+}
+
+td {
+ font-size: x-small;
+	padding: 5px;
+}
+
+.BunchOfText {
+	font-size: xx-small;
+}
+ </style>
+</head> 
+<body> 
+	~[wc:admin_header_css] 
+ <!-- breadcrumb start --><!-- breadcrumb end --> 
+<!-- start of main menu and content --> 
+	~[wc:admin_navigation_css] 
+<!-- Start of Page --> 
+	<h1>Student GPA from Selection</h1> 
+<!-- start of content area --> 
+	<div class="box-round"> 
+<table class="tableToGrid">
+<thead>
+<tr>
+<th data-sorttype="customText" width="120">Student</th>
+<th data-sorttype="integer" width="35">Gr.</th>
+<th data-sorttype="attrDec" width="45">Wtd. GPA</th>
+<th data-sorttype="attrDec" width="45">Unw. GPA</th></tr></thead><tbody>
+~[tlist_sql; SELECT st.last_name, st.first_name, st.grade_level, st.dcid FROM Students st 
+INNER JOIN ~[temp.table.current.selection:students] stusel 
+ON stusel.dcid = st.dcid
+ORDER BY st.lastfirst; alternatecolor]<tr>
+<td width="120">~(last_name), ~(first_name)</td>
+<td width="35">~(grade_level)</td>
+<td class="gpa" dcid="~(dcid)" method="INSERTNAMEOFYOURMETHODHERE" width="45"></td>
+<td class="gpa" dcid="~(dcid)" method="INSERTNAMEOFYOURMETHODHERE" width="45"></td></tr>[/tlist_sql]
+</tbody></table>	</div> 
+<!-- end of content area --> 
+	~[wc:admin_footer_css] 
+</body> 
+</html>
