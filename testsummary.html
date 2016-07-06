@@ -1,39 +1,12 @@
 <!DOCTYPE html>
-<!--
-Description of general approach:
-
-I am not a master of complex SQL statements, and it seems the only two ways to get PowerSchool custom pages to work to display complex sets of data are to 1) use complex SQL statements or to 2) use JavaScript gymnastics. I've opted here for JavaScript gymnastics. The custom pages engine tries to be "smart" and insert closing </div> tags before you have inserted them in the proper place, so you cannot apply JavaScript if/then conditionals to the SQL output in the raw. The output also has to (because of how custom pages work in PowerSchool) in the exact order of the returned items in the SQL query.
-
-So below is a very roundabout way to approach reporting test scores for students, but it works with PowerSchool custom pages! Basically, all the data is reported out using TLIST_SQL into a JavaScript array of objects. Then the array of objects is read through with some conditional logic (if/then) applied and then piped into a holding pen variable. Once everything has been processed, the holding pen variable value is put on to the page to display.
-
-Another consideration was whether to use tables or divs. Since some test scores have a lot of subscores (the ACT, for example), I opted to use divs instead so the scores would wrap. This has the added benefit of making for a responsive design, which displays better on mobile devices or web browser windows with a smaller width, which may be what the user prefers.
-
-Since this is a bit of a one-off in terms of styling, I kept the css inline instead of putting it in an external file. If you have a lot of reports you'd like to style similarly, obviously you'd put the css in a central location to reference externally. Also, I like to have each of the scores in a little bubble, but you can tweak the styling of each cell to suit your needs.
-
--->
 <html>
-<!-- start right frame -->
+<!--No more JavaScript gymnastics from the old version. This one uses a SQL subquery with LISTAGG to get the appropriate breaks-->
 <head>
 <title>~[text:psx.html.admin_students.testlist.test_scores]</title>
 ~[wc:commonscripts]
 <link href="/images/css/screen.css" rel="stylesheet" media="screen">
 <link href="/images/css/print.css" rel="stylesheet" media="print">
-<script type="text/javascript">
-$j(document).ready(function() {
-    var tabContent = $j('#renderedTabs');
-    $j(tabContent).insertBefore('#tab-content-area');
-    var tabCount = $j('.tabs li').length;
-    if($j('.tabs li[class="selected"]').length == 0) {
-        var firstLi = $j('.tabs li:first');
-        firstLi.addClass('selected');
-        if(tabCount > 1) {
-            $j('body').hide();
-            window.location = firstLi.children('a').attr('href');//$j('.tabs li:first a').attr('href');
-        }
-    }
-});
-</script>
-<!-- Inline styles. Feel free to tweak... or put in an external stylesheet -->
+	<!-- Inline styles. Feel free to tweak... or put in an external stylesheet -->
 <style>
 	.test_container {
 		min-width:500px;
@@ -65,124 +38,45 @@ $j(document).ready(function() {
 		margin: 1px;
 		border-radius: 10px;
 	}
-</style>
-
-</head>
-
-<body>
+</style>	
+</head> 
+<body> 
 ~[wc:admin_header_frame_css]<!-- breadcrumb start --><a href="/admin/home.html" target="_top">~[text:psx.html.admin_students.testlist.start_page]</a> &gt; <a href="home.html?selectstudent=nosearch" target="_top">~[text:psx.html.admin_students.testlist.student_selection]</a> &gt;~[text:psx.html.admin_students.testlist.test_scores1]<!-- breadcrumb end -->~[wc:admin_navigation_frame_css]
 
 ~[wc:title_student_begin_css]~[text:psx.html.admin_students.testlist.test_scores2]~[wc:title_student_end_css]
 
-<!-- start of content and bounding box -->
-<div id="tab-content-area" class="box-round">
-
-<!-- Scroll within -->
-
-<!-- Create a placeholder for testscore output -->
-<div id="testreport"></div>
-
-<script>
-	// Create an empty array
-	var test = [];
-</script>
-
-<!-- This query gets out all the test scores -->
-~[tlist_sql; SELECT t.Name, to_char(st.Test_Date, 'MM/DD/YYYY'), st.Grade_Level, ts.Name, ts.Description, sts.NumScore, sts.studenttestid FROM StudentTest st 
-    INNER JOIN StudentTestScore sts ON sts.StudentTestID=st.ID AND sts.StudentID=st.StudentID
-    INNER JOIN TestScore ts ON sts.TestScoreID=ts.ID 
-    INNER JOIN Test t ON ts.TestID=t.ID
-WHERE st.StudentID=~(curstudid) ORDER BY t.Name, st.Test_Date, sts.studenttestid, ts.SortOrder;]
-
-<script>
-	// Add object of results to previously empty array
-	test.push({test: "~(t.Name)", date: "~(st.Test_date)", grade: "~(st.Grade_Level)", type: "~(ts.Name)", description: "~(ts.Description)", score: "~(sts.NumScore)", testid: "~(sts.studenttestid)"});
-</script>
-
-[/tlist_sql]
-
-<!-- Double-check that this person should have access to the edit link ... admin users will be able to edit test scores... others will be able to only view the test scores -->
-~[if.~[f.in;value=~[f.table_info;table=teachers;dothisfor=all;*id=~[x:userid];field=group; fn=value];in=9,18]=1]
-	<script>
-		var displayLink="1";
-	</script>
-[else]
-	<script>
-		var displayLink="0";
-	</script>
-[/if]
-
-<script>
-	// Now that the test results are all in an array, let's use the array
-	$j(document).ready(function() {
-		// Have the current student ID ready as a JavaScript variable
-		var curStudID="~(curstudid)";
-
-		// Initialize a holder variable to hold all the input to spit back... if you spit back the output as you go, PowerSchool custom pages will insert random closing tags prematurely, which will mess up all the formatting.
-		var holdingPen='';
-
-		// Initialize test variables
-		var lastTest='';
-		var lastDate='';
-
-		// Loop through the array
-		for(j=0; j<test.length; j++){
-
-			// Process each of the items in the object
-			// If the last test is not the same as this one, make a new header
-			if(test[j].test!=lastTest){
-				// But if it's the absolute first test, you don't need to close the last table
-				if(lastTest!=''){
-					holdingPen+='<!-- last test not blank --></div></div>';
-				}
-				holdingPen+='<h2>' + test[j].test + '</h2><div class="test_container"> <div class="test_sidebar" id="sba' + j + '"> <div class="test_cell"> <strong>Date</strong><br />' + test[j].date;
-				if(displayLink=="1"){
-					holdingPen+='<br /><a href="editstudtest.html?studenttestid=' + test[j].testid + '&frn=' + curStudID + '&externalTestTab=selected">Edit Test</a>';
-				}
-				holdingPen+='</div> <div class="test_cell"><strong>Grade</strong><br />';
-				// Apparently, sometimes the grade is 0 instead of 8-12, so if it's 0, we'll just leave it off
-				if(test[j].grade>0){
-					holdingPen+=test[j].grade;
-				}
-				holdingPen+='<!-- last test not this test --></div> </div> <div class="test_main">';
-			}
-	
-			// We've already accounted for the tests being different... the only other scenario is if the test is the same, but the dates are different
-			if(lastDate!=test[j].date && lastTest==test[j].test){
-				// Close
-				holdingPen+='<!-- last date not this date and last test is this test --></div></div><div class="test_container"> <div class="test_sidebar" id="sbb' + j + '"> <div class="test_cell"> <strong>Date</strong><br />' + test[j].date;
-				if(displayLink=="1"){
-					holdingPen+='<br /><a href="editstudtest.html?studenttestid=' + test[j].testid + '&frn=' + curStudID + '&externalTestTab=selected">Edit Test</a>';
-				}		
-				holdingPen+='</div> <div class="test_cell"><strong>Grade</strong><br />' + test[j].grade + '</div> </div> <div class="test_main">';
-			}
-			// The description is too long, so we're going to use the type instead
-			// Even the type is too long... let's see if we can trim it down a bit more
-			var shortType = test[j].type.replace(test[j].test + "_", "");
-			// Otherwise, just do the usual
-			holdingPen+='<div class="test_cell" id="ce' + j + '"><strong>' + shortType + '</strong><br />' + test[j].score + '</div>';
-			// Reset test variables for next time
-			var lastTest=test[j].test;
-			var lastDate=test[j].date;
-		}
+<!-- start of content area --> 
+	<div class="box-round">
 		
-		// Close the last table if there were any results
-		if(lastTest!=''){
-			holdingPen+='<!-- Closing div div --></div></div>';
-			// Echo it all back...
-			$j("#testreport").append(holdingPen);
-				} else {
-			// Otherwise, say there were no results
-			$j("#testreport").append("<p>No test scores to display</p>");
-		}
+		 ~[tlist_sql; SELECT t.name,
+  CASE 
+    WHEN st.grade_level!=0
+    THEN st.grade_level
+    ELSE NULL
+  END gr_level, to_char(st.test_date, 'MM/DD/YYYY') test_date, st.id,
+  (SELECT LISTAGG('<div class="test_cell"><strong>' || REPLACE(ts.name, t.name || '_', '') || '</strong><br />' || sts.numscore || '</div>') WITHIN GROUP (ORDER BY ts.sortorder)
+  FROM studenttestscore sts
+    INNER JOIN testscore ts ON sts.testscoreid=ts.id
+  WHERE sts.studenttestid=st.id AND sts.studentid=st.studentid
+  ) scores
+FROM students stu
+INNER JOIN studenttest st
+  ON stu.dcid=st.studentid
+INNER JOIN test t
+  ON st.testid=t.id
+WHERE stu.dcid=~(curstudid)
+ORDER BY t.name, st.test_date]<h2>~(t.name)</h2><div class="test_container">
+   <div class="test_sidebar">
+      <div class="test_cell"><strong>Grade</strong><br />~(gr_level)</div>
+      <div class="test_cell"><strong>Date</strong><br />~(test_date)<br />
+      <a href="editstudtest.html?studenttestid=~(st.id)&externalTestTab=selected" target="_blank">Edit Test</a></div>
+   </div>
+   <div class="test_main">~(scores)</div></div>[/tlist_sql]
+	</div> 
+<!-- end of content area --> 
+	~[wc:admin_footer_css] 
+</body> 
+</html>
 
-	// End checking document is loaded
-	});
-</script>
 
-<!-- end of content of bounding box -->
 
-~[wc:admin_footer_frame_css]
-</body>
-<div id="renderedTabs">~[brij_render:/admin/schoolnet/links;:renderTabs]</div>
-</html><!-- end right frame -->
