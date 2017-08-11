@@ -1,0 +1,24 @@
+"Subject","Start Date","Start Time","End Date","End Time","All Day Event","Description","Location","Private"
+~[tlist_sql; SELECT co.course_name, to_char(cd.date_value, 'MM/DD/YYYY'),
+bsi.start_time, to_char(cd.date_value, 'MM/DD/YYYY'), bsi.end_time, se.room
+FROM sections se
+INNER JOIN section_meeting sm
+    ON se.dcid=sm.sectionid
+INNER JOIN period per
+    ON per.period_number=sm.period_number
+INNER JOIN bell_schedule_items bsi
+    ON bsi.period_id=per.id
+INNER JOIN bell_schedule bs
+    ON bsi.bell_schedule_id=bs.dcid
+INNER JOIN calendar_day cd
+    ON cd.bell_schedule_id=bsi.bell_schedule_id
+    AND scheduleid=sm.cycle_day_letter
+INNER JOIN courses co
+    ON co.course_number=se.course_number
+INNER JOIN teachers tea
+    ON tea.dcid=se.teacher
+INNER JOIN terms ter
+    ON se.termid=ter.id
+WHERE sysdate < ter.lastday AND tea.dcid=~(rn)
+ORDER BY cd.date_value, bsi.start_time]"~(subject)","~(start_date)","~(start_time;l;format=time)","~(end_date)","~(end_time;l;format=time)","False","","~(location)","False"
+[/tlist_sql]
