@@ -3,20 +3,20 @@
 bsi.start_time, to_char(cd.date_value, 'MM/DD/YYYY'), bsi.end_time, se.room
 FROM sections se
 INNER JOIN section_meeting sm
-    ON se.dcid=sm.sectionid
+    ON se.id=sm.sectionid
 INNER JOIN period per
     ON per.period_number=sm.period_number
 INNER JOIN bell_schedule_items bsi
     ON bsi.period_id=per.id
 INNER JOIN bell_schedule bs
-    ON bsi.bell_schedule_id=bs.dcid
+    ON bsi.bell_schedule_id=bs.id
 INNER JOIN calendar_day cd
     ON cd.bell_schedule_id=bsi.bell_schedule_id
     AND scheduleid=sm.cycle_day_letter
 INNER JOIN courses co
     ON co.course_number=se.course_number
 INNER JOIN teachers tea
-    ON tea.dcid=se.teacher
+    ON tea.id=se.teacher
 INNER JOIN terms ter
     ON se.termid=ter.id
 WHERE (sysdate < ter.lastday) AND (tea.dcid=~(rn))
