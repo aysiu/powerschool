@@ -19,6 +19,7 @@ INNER JOIN teachers tea
     ON tea.dcid=se.teacher
 INNER JOIN terms ter
     ON se.termid=ter.id
-WHERE sysdate < ter.lastday AND tea.dcid=~(rn)
-ORDER BY cd.date_value, bsi.start_time]"~(subject)","~(start_date)","~(start_time;l;format=time)","~(end_date)","~(end_time;l;format=time)","False","","~(location)","False"
+WHERE (sysdate < ter.lastday) AND (tea.dcid=~(rn))
+ AND (cd.date_value BETWEEN ter.firstday AND ter.lastday)
+ORDER BY cd.date_value, bsi.start_time]"~(subject)","~(start_date)","~(start_time;l;format=time)","~(end_date)","~(end_time;l;format=time	)","False","","~(location)","False"
 [/tlist_sql]
