@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Version: 9.9.3.0 (rc3) - 12/13/2010 15:14 -->
+<FSC-Destiny-PatronImport version="1">
+~[tlist_sql; SELECT dcid, last_name, first_name, middle_name, NULL AS "preferredname", sched_gender, NULL AS "grade_level", NULL AS "classof",
+NULL AS "dob", loginid, email_addr from teachers WHERE psaccess=1
+UNION
+SELECT student_number, last_name, first_name, middle_name, ps_customfields.getcf('students', id, 'Student_preferredname') nick_name, gender,
+grade_level, classof, to_char(dob, 'YYYYMMDD') dateofbirth, student_web_id, ps_customfields.getcf('students', id, 'Student_email') student_email
+FROM students
+WHERE enroll_status=0 AND schoolid=1
+ORDER BY 6, 1, 2]<Patron action="addmodify">
+    <Match>
+      <Barcode><![CDATA[~(bar_code)]]></Barcode>
+      <SiteShortName><![CDATA[Lib 100]]></SiteShortName>
+    </Match>
+    <SiteShortName><![CDATA[Lib 100]]></SiteShortName>
+    <Barcode><![CDATA[~(bar_code)]]></Barcode>
+    <LastName><![CDATA[~(last_name)]]></LastName>
+    <FirstName><![CDATA[~(first_name)]]></FirstName>
+    <MiddleName><![CDATA[~(middle_name)]]></MiddleName>
+    <Nickname><![CDATA[~(nick_name)]]></Nickname>
+    <Gender><![CDATA[~(gender)]]></Gender>
+    <GradeLevel><![CDATA[~(grade_level)]]></GradeLevel>
+    <GraduationYear><![CDATA[~(classof)]]></GraduationYear>
+    <BirthDate><![CDATA[~(dateofbirth)]]></BirthDate>
+    <UserName><![CDATA[~(loginid)]]></UserName>
+    <EmailPrimary><![CDATA[~(email_addr)]]></EmailPrimary>
+  </Patron>
+[/tlist_sql]</FSC-Destiny-PatronImport>
