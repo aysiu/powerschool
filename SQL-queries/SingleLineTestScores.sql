@@ -6,7 +6,7 @@ SELECT stu.lastfirst,
       INNER JOIN StudentTestScore sts ON sts.StudentTestID=st.ID AND sts.StudentID=st.StudentID
       INNER JOIN TestScore ts ON sts.TestScoreID=ts.ID
       INNER JOIN Test t ON ts.TestID=t.ID
-    WHERE t.name='HSPT' AND st.studentID=stu.dcid) "HSPT Scores"
+    WHERE t.name='HSPT' AND st.studentID=stu.id) "HSPT Scores"
 FROM students stu
 WHERE stu.enroll_status=0
   AND stu.grade_level=9
