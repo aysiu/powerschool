@@ -1,11 +1,11 @@
 SELECT co.course_name, s.expression, st.lastfirst, attc.att_code, att.att_comment, st.classof, to_char(att.att_date, 'MM/DD/YY')
 FROM attendance att
   INNER JOIN attendance_code attc
-    ON att.attendance_codeid=attc.dcid
+    ON att.attendance_codeid=attc.id
   INNER JOIN students st
-    ON att.studentid=st.dcid
+    ON att.studentid=st.id
   INNER JOIN cc
-    ON att.ccid=cc.dcid
+    ON att.ccid=cc.id
     INNER JOIN sections s
     ON cc.sectionid=s.id
   INNER JOIN courses co
