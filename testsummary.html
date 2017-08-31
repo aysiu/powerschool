@@ -61,7 +61,7 @@
   ) scores
 FROM students stu
 INNER JOIN studenttest st
-  ON stu.dcid=st.studentid
+  ON stu.id=st.studentid
 INNER JOIN test t
   ON st.testid=t.id
 WHERE stu.dcid=~(curstudid)
